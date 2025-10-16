@@ -2,9 +2,10 @@ import copy from 'copy-to-clipboard';
 import history from 'history/browser';
 import { RefObject, useCallback, useEffect, useState } from 'react';
 import styled from 'styled-components';
+import hljs from 'highlight.js';
 
 import themes, { Themes } from '../style/themes';
-import { languages } from '../util/highlighting';
+import { languages, minecraftLogs } from '../util/highlighting';
 import { saveToBytebin } from '../util/storage';
 import { useQueryRouting } from '../util/constants';
 import Button from './Button';
@@ -43,20 +44,32 @@ export default function EditorControls({
   const [saving, setSaving] = useState<boolean>(false);
   const [recentlySaved, setRecentlySaved] = useState<boolean>(false);
 
+  hljs.registerLanguage('log', minecraftLogs)
+  let lang = language;
+  if (language == '' || language == 'plain' || language == 'plaintext') {
+    const result = hljs.highlightAuto(actualContent);
+    if (result && result.language) {
+      lang = result.language;
+    }
+  }
+
+  let content = actualContent.replace(/\b(?:\d{1,3}\.){3}\d{1,3}\b/g, '0.0.0.0');
+  content = content.replace(/\b([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}\b/g, '0:0:0:0:0:0:0:0');
+
   useEffect(() => {
     setRecentlySaved(false);
-  }, [actualContent, language]);
+  }, [content, lang]);
 
   const showAbout = useCallback(() => {
     setShowAbout(true);
   }, [setShowAbout]);
 
   const save = useCallback(() => {
-    if (!actualContent || recentlySaved) {
+    if (!content || recentlySaved) {
       return;
     }
     setSaving(true);
-    saveToBytebin(actualContent, language).then(pasteId => {
+    saveToBytebin(content, lang).then(pasteId => {
       setSaving(false);
       setRecentlySaved(true);
       if (pasteId) {
@@ -69,11 +82,12 @@ export default function EditorControls({
             pathname: pasteId,
           });
         }
+        setLanguage(lang);
         copy(window.location.href);
         document.title = 'paste | ' + pasteId;
       }
     });
-  }, [actualContent, language, recentlySaved]);
+  }, [content, lang, recentlySaved]);
 
   useEffect(() => {
     const listener = (e: KeyboardEvent) => {
