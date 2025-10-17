@@ -58,7 +58,7 @@ export const logLanguage: languages.IMonarchLanguage = {
       [/"[^"]*"/, 'string'],
       [/(?<![\w])'[^']*'/, 'string'],
       // Colorize rows of exception call stacks
-      [/[\t ]*at[\t ]+.*$/, 'exception'],
+      [/[\t ]+at[\t ]+.*$/, 'exception'],
       [/Exception in thread ".*" .*$/, 'exception'],
       // Exception type names
       [/\b([a-zA-Z.]*Exception)\b/, 'exception'],
