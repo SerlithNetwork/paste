@@ -1,9 +1,6 @@
 # Build stage
 FROM node:lts AS build
 
-ARG BYTEBIN_URL="data/"
-ENV VITE_BYTEBIN_URL="${BYTEBIN_URL}"
-
 WORKDIR /app
 COPY package.json yarn.lock ./
 RUN yarn
